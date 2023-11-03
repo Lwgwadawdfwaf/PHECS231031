@@ -42,13 +42,17 @@ struct queue
 void Queuecsh(Queue* Q);
 
 //入队
-void InQueue(Queue Q, Tree T);
+void InQueue(Queue* Q, Tree T);
 
 //出队
-Tree OutQueue(Queue Q);
+Tree OutQueue(Queue* Q);
+
 
 //查看队头元素
 Tree FrontQueue(Queue Q);
+
+//释放队列
+void ReleaseQueue(Queue* Q);
 
 //初始化栈
 void Stackcsh(Stack* S);
@@ -61,6 +65,9 @@ Tree pop_S(Stack S);
 
 //查看栈顶元素
 Tree top_S(Stack S);
+
+//释放栈
+void ReleaseStack(Stack* S);
 
 //初始化二叉树
 void Treecsh(Tree* T);
@@ -90,10 +97,10 @@ int push_x(Tree* T, SJLX x);
 Tree find_T(Tree T, SJLX x);
 
 //前序遍历树,并返回树节点的个数，可传操作函数
-int traverse_QT(Tree T,void*(op_F)(Tree));
+int traverse_QT(Tree T,void(*op_F)(Tree));
 
 //中序遍历树,并返回树节点的个数，可传操作函数
-int traverse_ZT(Tree T, void* (op_F)(Tree));
+int traverse_ZT(Tree T, void (*op_F)(Tree));
 
 //后序遍历树,并返回树节点的个数
 int traverse_HT(Tree T);
@@ -114,6 +121,18 @@ void LRTree_(Tree T);
 void RLTree_(Tree T);
 
 //删除节点,删除成功返回树高，失败返回-1
-void pop_x(Tree* T, SJLX x);
+int pop_x(Tree* T, SJLX x);
+
+//删除并返回最小值
+int pop_min_x(Tree* T);
+
+//删除并返回最大值
+int pop_max_x(Tree* T);
+
+//修改树节点，传入修改节点地址和新值，修改失败返回NULL，成功返回新值所在节点
+int ChangeTree(Tree* T, SJLX MVx, SJLX x);
+
+//释放树
+void FreeTree(Tree* T);
 
 

@@ -33,8 +33,5 @@
     <ClCompile Include="Phecs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Phecs_cmp.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

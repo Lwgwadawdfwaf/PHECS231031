@@ -53,13 +53,24 @@ Tree FrontQueue(Queue Q)
 	return Q->last->x;
 }
 
+//释放队列
+void ReleaseQueue(Queue* Q)
+{
+	while (*Q)
+	{
+		*Q = (*Q)->next;
+		free(*Q);
+	}
+	*Q = NULL;
+}
+
 //初始化栈
 void Stackcsh(Stack* S)
 {
 	*S = (Stack)malloc(sizeof(struct stack));
 	(*S)->capacity = 100;
 	(*S)->size = 0;
-	(*S)->arr = (Tree)malloc(sizeof(struct tree) * (*S)->capacity);
+	(*S)->arr = (Tree*)malloc(sizeof(Tree) * (*S)->capacity);
 }
 
 //压栈
@@ -67,8 +78,8 @@ void push_S(Stack S, Tree T)
 {
 	if (S->capacity == S->size)
 	{
-		S->capacity *= 2;
-		Tree cmp = (Tree)realloc(S->arr, sizeof(struct tree) * S->capacity);
+		S->capacity +=100;
+		Tree* cmp = (Tree*)realloc(S->arr, sizeof(Tree) * S->capacity);
 		assert(cmp != NULL);
 		S->arr = cmp;
 	}
@@ -87,6 +98,17 @@ Tree top_S(Stack S)
 {
 	assert(S->size != 0);
 	return S->arr[S->size - 1];
+}
+
+//释放栈
+void ReleaseStack(Stack* S)
+{
+	if (*S)
+	{
+		free((*S)->arr);
+		free(*S);
+		*S = NULL;
+	}
 }
 
 //初始化二叉树
@@ -140,6 +162,7 @@ int LRTree(Tree* T)
 		T_->Zson = NULL;
 		T_LR->Yson = T_;
 		T_LR->Zson = T_L;
+		return 2;
 	}
 	else
 	{
@@ -188,6 +211,7 @@ int RLTree(Tree* T)
 		T_->Yson = NULL;
 		T_RL->Zson = T_;
 		T_RL->Yson = T_R;
+		return 2;
 	}
 	else
 	{
@@ -256,7 +280,7 @@ int push_Tree(Tree* T, Tree Tx)
 		}
 	}
 	//判断是否右递归
-	else if ((*T)->x > Tx->x)
+	else
 	{
 		int h = push_Tree(&(*T)->Yson, Tx);
 		//判断是否插入失败
@@ -324,7 +348,7 @@ Tree find_T(Tree T, SJLX x)
 }
 
 //前序遍历树,并返回树节点的个数，可传操作函数
-int traverse_QT(Tree T, void* (op_F)(Tree))
+int traverse_QT(Tree T, void (*op_F)(Tree))
 {
 	if (T == NULL)
 		return 0;
@@ -336,7 +360,7 @@ int traverse_QT(Tree T, void* (op_F)(Tree))
 }
 
 //中序遍历树,并返回树节点的个数，可传操作函数
-int traverse_ZT(Tree T, void* (op_F)(Tree))
+int traverse_ZT(Tree T, void (*op_F)(Tree))
 {
 	if (T == NULL)
 		return 0;
@@ -356,6 +380,7 @@ int traverse_ZT(Tree T, void* (op_F)(Tree))
 		op_F(cmp);
 		cmp = cmp->Yson;
 	}
+	ReleaseStack(&S);
 	return size;
 }
 
@@ -373,9 +398,9 @@ int traverse_HT(Tree T)
 	{
 		while (cmp)
 		{
-			push_S(S, cmp);
 			push_S(Scmp, cmp);
 			size++;
+			push_S(S, cmp);
 			cmp = cmp->Yson;
 		}
 		cmp = pop_S(Scmp);
@@ -386,6 +411,8 @@ int traverse_HT(Tree T)
 		printf("%d ", pop_S(S)->x);
 	}
 	printf("\n");
+	ReleaseStack(&S);
+	ReleaseStack(&Scmp);
 	return size;
 }
 
@@ -410,6 +437,7 @@ int traverse_T(Tree T)
 		if (cmp->Yson)
 			InQueue(&Q, cmp->Yson);
 	}
+	ReleaseQueue(&Q);
 	return size;
 }
 
@@ -430,14 +458,10 @@ void LLTree_(Tree T)
 	T_L->Zson = T_LR;
 	T_L->Yson = T_R;
 	//整理树高
-	if (T->Yson->Yson == NULL)
-	{
+	if (T->Yson->Yson == NULL && T->Yson->Zson == NULL)
 		T->Yson->Height = 1;
-	}
 	else
-	{
-		T->Yson->Height = T->Yson->Zson->Height+1;
-	}
+		T->Yson->Height = T->Yson->Zson->Height + 1;
 	T->Height = Tree_H(T);
 }
 
@@ -458,26 +482,68 @@ void RRTree_(Tree T)
 	T_R->Yson = T_RL;
 	T_R->Zson = T_L;
 	//整理树高
-	if (T->Zson->Zson == NULL)
-	{
-		T->Zson->Height = 1;
-	}
+	if (T->Zson->Zson == NULL&& T->Zson->Yson == NULL)
+			T->Zson->Height = 1;
 	else
-	{
 		T->Zson->Height = T->Zson->Yson->Height + 1;
-	}
 	T->Height = Tree_H(T);
 }
 
+//LR旋转函数
+void LRTree_(Tree T)
+{
+	Tree T_, T_L, T_R, T_LL, T_LR, T_LRL, T_LRR;
+	T_ = T;
+	T_L = T->Zson;
+	T_R = T->Yson;
+	T_LL = T->Zson->Zson;
+	T_LR = T->Zson->Yson;
+	T_LRL = T->Zson->Yson->Zson;
+	T_LRR = T->Zson->Yson->Yson;
+	SJLX cmp = T->x;
+	T->x = T_LR->x;
+	T_LR->x = cmp;
+	T_->Yson = T_LR;
+	T_L->Yson = T_LRL;
+	T_LR->Zson = T_LRR;
+	T_LR->Yson = T_R;
+	//调整树高
+	T->Height--;
+	T->Zson->Height--;
+}
+
+//RL旋转函数
+void RLTree_(Tree T)
+{
+	Tree T_, T_R, T_L, T_RR, T_RL, T_RLR, T_RLL;
+	T_ = T;
+	T_R = T->Yson;
+	T_L = T->Zson;
+	T_RR = T->Yson->Yson;
+	T_RL = T->Yson->Zson;
+	T_RLR = T->Yson->Zson->Yson;
+	T_RLL = T->Yson->Zson->Zson;
+	SJLX cmp = T->x;
+	T->x = T_RL->x;
+	T_RL->x = cmp;
+	T_->Zson = T_RL;
+	T_R->Zson = T_RLR;
+	T_RL->Yson = T_RLL;
+	T_RL->Zson = T_L;
+	//调整树高
+	T->Height--;
+	T->Yson->Height--;
+}
+
 //删除节点,删除成功返回树高，失败返回-1
-void pop_x(Tree* T, SJLX x)
+int pop_x(Tree* T, SJLX x)
 {
 	Tree Xcmp, cmp, Scmp, Scmpson;
 	cmp = *T;
 	Stack S;
-	Stackcsh(S);
+	Stackcsh(&S);
 	//寻找删除节点，并把路过节点放入栈中
-	while (cmp || cmp->x != x)
+	while (cmp && cmp->x != x)
 	{
 		push_S(S, cmp);
 		if (cmp->x > x)
@@ -485,13 +551,13 @@ void pop_x(Tree* T, SJLX x)
 		else
 			cmp = cmp->Yson;
 	}
-	//判断是否有该节点
+	//判断是否没有该节点
 	if (!cmp)
 	{
 		return -1;
 	}
 	//判断是否删除只有一个节点的树
-	if (S->size == 0)
+	if (S->size == 0 && cmp->Zson == cmp->Yson)
 	{
 		*T = NULL;
 		free(cmp);
@@ -512,7 +578,12 @@ void pop_x(Tree* T, SJLX x)
 	}
 	else if (cmp->Yson == NULL)
 	{
-		Scmp = top_S(S);
+		if (S->size == 0)
+		{
+			*T = cmp->Zson;
+			return--(*T)->Height;
+		}
+			Scmp = top_S(S);
 		if (Scmp->Zson == cmp)
 			Scmp->Zson = cmp->Zson;
 		else
@@ -522,7 +593,12 @@ void pop_x(Tree* T, SJLX x)
 	}
 	else if (cmp->Zson == NULL)
 	{
-		Scmp = top_S(S);
+		if (S->size == 0)
+		{
+			*T = cmp->Yson;
+			return--(*T)->Height;
+		}
+			Scmp = top_S(S);
 		if (Scmp->Zson == cmp)
 			Scmp->Zson = cmp->Yson;
 		else
@@ -536,7 +612,7 @@ void pop_x(Tree* T, SJLX x)
 		//寻找替代节点,并把路过节点继续放入栈中
 		push_S(S, cmp);
 		cmp = cmp->Zson;
-		while (cmp->Zson == NULL || cmp->Yson == NULL)
+		while (cmp->Zson != NULL && cmp->Yson != NULL)
 		{
 			push_S(S, cmp);
 			cmp = cmp->Yson;
@@ -563,7 +639,7 @@ void pop_x(Tree* T, SJLX x)
 			Scmpson = cmp->Zson;
 			free(cmp);
 		}
-		else if (cmp->Zson == NULL)
+		else
 		{
 			Scmp = top_S(S);
 			if (Scmp->Zson == cmp)
@@ -578,14 +654,178 @@ void pop_x(Tree* T, SJLX x)
 	while (S->size)
 	{
 		Scmp = pop_S(S);
+		//判断不旋转
+		if (Scmp->Zson == Scmp->Yson)
+			Scmp->Height = 1;
+		else if (Scmp->Zson == NULL && Scmp->Yson->Height != 2);
+		else if (Scmp->Yson == NULL && Scmp->Zson->Height != 2);
+		else if (Scmp->Zson && Scmp->Yson &&
+			    (Scmp->Zson->Height - Scmp->Yson->Height != 2 &&
+				Scmp->Yson->Height - Scmp->Zson->Height != 2))
+			Scmp->Height = Tree_H(Scmp);
 		//判断删除数据在左还是右
-		if (Scmp->Zson == Scmpson)
+		else if (Scmp->Yson == Scmpson)
 		{
-
-
+			//判断LL旋转还是LR旋转
+			if (Scmp->Zson->Zson != NULL &&
+				Scmp->Zson->Zson->Height == Scmp->Zson->Height - 1 &&
+				(Scmp->Yson == NULL || Scmp->Zson->Height - Scmp->Yson->Height == 2))
+				LLTree_(Scmp);
+			else
+				LRTree_(Scmp);
 		}
 		else
 		{
+			//判断RR旋转还是RL旋转
+			if (Scmp->Yson->Yson != NULL &&
+				Scmp->Yson->Yson->Height == Scmp->Yson->Height - 1 &&
+				(Scmp->Zson == NULL || Scmp->Yson->Height - Scmp->Zson->Height == 2))
+				RRTree_(Scmp);
+			else
+				RLTree_(Scmp);
 		}
+		Scmpson = Scmp;
+	}
+	ReleaseStack(&S);
+	//返回树高
+	return (*T)->Height;
+}
+
+//删除并返回最小值
+int pop_min_x(Tree* T)
+{
+	assert(*T);
+	Tree cmp, Scmp;
+	SJLX x;
+	cmp = *T;
+	if (!(*T)->Zson)
+	{
+		x = (*T)->x;
+		*T = (*T)->Yson;
+		free(cmp);
+		return x;
+	}
+	Stack S;
+	Stackcsh(&S);
+	//寻找删除节点
+	while (cmp->Zson)
+	{
+		push_S(S, cmp);
+		cmp = cmp->Zson;
+	}
+	x = cmp->x;
+	//删除节点
+		Scmp = top_S(S);
+		Scmp->Zson = cmp->Yson;
+		free(cmp);
+	//平衡树
+	while (S->size)
+	{
+		Scmp = pop_S(S);
+		//不旋转
+		if (Scmp->Zson == Scmp->Yson)
+			Scmp->Height = 1;
+		else if (Scmp->Zson == NULL && Scmp->Yson->Height != 2);
+		else if (Scmp->Zson != NULL && Scmp->Yson->Height - Scmp->Zson->Height != 2)
+			Scmp->Height = Tree_H(Scmp);
+		//判断RR旋转还是RL旋转
+		else if (Scmp->Yson->Yson != NULL &&
+			Scmp->Yson->Yson->Height == Scmp->Yson->Height - 1 &&
+			(Scmp->Zson == NULL || Scmp->Yson->Height - Scmp->Zson->Height == 2))
+			RRTree_(Scmp);
+		else
+			RLTree_(Scmp);
+	}
+	ReleaseStack(&S);
+	return x;
+}
+
+//删除并返回最大值
+int pop_max_x(Tree* T)
+{
+	assert(*T);
+	Tree cmp, Scmp;
+	SJLX x;
+	cmp = *T;
+	if (!(*T)->Yson)
+	{
+		x = (*T)->x;
+		*T = (*T)->Zson;
+		free(cmp);
+		return x;
+	}
+	Stack S;
+	Stackcsh(&S);
+	//寻找删除节点
+	while (cmp->Yson)
+	{
+		push_S(S, cmp);
+		cmp = cmp->Yson;
+	}
+	x = cmp->x;
+	//删除节点
+	Scmp = top_S(S);
+	Scmp->Yson = cmp->Zson;
+	free(cmp);
+	//平衡树
+	while (S->size)
+	{
+		Scmp = pop_S(S);
+		//不旋转
+		if (Scmp->Yson == Scmp->Zson)
+			Scmp->Height = 1;
+		else if (Scmp->Yson == NULL && Scmp->Zson->Height != 2);
+		else if (Scmp->Yson != NULL && Scmp->Zson->Height - Scmp->Yson->Height != 2)
+			Scmp->Height = Tree_H(Scmp);
+		//判断LL旋转还是LR旋转
+		else if (Scmp->Zson->Zson != NULL &&
+			Scmp->Zson->Zson->Height == Scmp->Zson->Height - 1 &&
+			(Scmp->Yson == NULL || Scmp->Zson->Height - Scmp->Yson->Height == 2))
+			LLTree_(Scmp);
+		else
+			LRTree_(Scmp);
+	}
+	ReleaseStack(&S);
+	return x;
+}
+
+//修改树节点，传入树，修改值和新值，修改失败返-1，成功返回树高
+int ChangeTree(Tree* T, SJLX MVx, SJLX x)
+{
+	//查找是否存在两个值，防止误操作
+	Tree cmp = *T;
+	while (cmp && cmp->x != MVx)
+	{
+		if (cmp->x > MVx)
+			cmp = cmp->Zson;
+		else
+			cmp = cmp->Yson;
+	}
+	if (!cmp)
+		return -1;
+	cmp = *T;
+	while (cmp && cmp->x != x)
+	{
+		if (cmp->x > x)
+			cmp = cmp->Zson;
+		else
+			cmp = cmp->Yson;
+	}
+	if (cmp)
+		return -1;
+	//删除修改值
+	pop_x(T, MVx);
+	//增加新值
+	return push_x(T, x);
+}
+
+//释放树
+void FreeTree(Tree* T)
+{
+	if (*T)
+	{
+		FreeTree(&(*T)->Zson);
+		FreeTree(&(*T)->Zson);
+		free(*T);
 	}
 }

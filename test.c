@@ -76,7 +76,7 @@ void test2()
 	printf("%d\n", t1->x);
 	if(t2==NULL)
 		printf("%d\n", (int)t2);
-	int x = traverse_T(T1);
+	int x = traverse_QT(T1, &cccop_F);
 	printf("\n%d", x);
 }
 
@@ -88,11 +88,60 @@ void test3()
 }
 void test4()
 {
+	Tree T;
+	Treecsh(&T);
+	for (int i = 0; i < 60000; i++)
+	{
+		push_x(&T, i);
+	}
+	int x = traverse_ZT(T, &cccop_F);
+	/*pop_x(&T, 2069);
+	pop_x(&T, 2068);
+	pop_x(&T,2070);*/
+	/*for (int i = 0; i < 10000; i++)
+	{
+		pop_x(&T, i);
+		
+	}*/
+	for (int i = 50000; i >= 0; i--)
+	{
+		pop_x(&T, i);
+	}
+	printf("\n");
+	int size = traverse_QT(T, cccop_F);
+	printf("\n%d\n", size);
+	pop_min_x(&T); 
+	pop_min_x(&T);
+	size = traverse_HT(T/*, cccop_F*/);
+	printf("\n%d\n", size);
+	printf("\n%d\n%d\n%d\n", ChangeTree(&T, 1000000, -1), ChangeTree(&T, 500000, -1), ChangeTree(&T, 50100, 1000000));
+	//pop_max_x(&T);
+	/*pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_max_x(&T);
+	pop_min_x(&T);
+	pop_max_x(&T);
+	pop_min_x(&T);
+	pop_max_x(&T);
+	pop_min_x(&T);
+	pop_max_x(&T);
+	pop_min_x(&T);*/
 
+
+	/*size = traverse_ZT(T, &cccop_F);
+	printf("\n%d\n \\n\\", size);*/
 }
 
 int main()
 {
-	test2();
+	test4();
 	return 0;
 }
